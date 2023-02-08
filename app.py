@@ -20,10 +20,11 @@ def set_openai_api_key(api_key: str):
         os.environ["OPENAI_API_KEY"] = ""
         return chain
 
-class ChatWrapper:
 
+class ChatWrapper:
     def __init__(self):
         self.lock = Lock()
+
     def __call__(
         self, api_key: str, inp: str, history: Optional[Tuple[str, str]], chain
     ):
@@ -37,6 +38,7 @@ class ChatWrapper:
                 return history, history
             # Set OpenAI key
             import openai
+
             openai.api_key = api_key
             # Run chain and append input.
             output = chain({"question": inp, "chat_history": history})["answer"]
@@ -46,6 +48,7 @@ class ChatWrapper:
         finally:
             self.lock.release()
         return history, history
+
 
 chat = ChatWrapper()
 
@@ -90,8 +93,16 @@ with block:
     state = gr.State()
     agent_state = gr.State()
 
-    submit.click(chat, inputs=[openai_api_key_textbox, message, state, agent_state], outputs=[chatbot, state])
-    message.submit(chat, inputs=[openai_api_key_textbox, message, state, agent_state], outputs=[chatbot, state])
+    submit.click(
+        chat,
+        inputs=[openai_api_key_textbox, message, state, agent_state],
+        outputs=[chatbot, state],
+    )
+    message.submit(
+        chat,
+        inputs=[openai_api_key_textbox, message, state, agent_state],
+        outputs=[chatbot, state],
+    )
 
     openai_api_key_textbox.change(
         set_openai_api_key,
@@ -99,4 +110,4 @@ with block:
         outputs=[agent_state],
     )
 
-block.launch(debug=True)
+block.launch(debug=True, server_name="0.0.0.0")
