@@ -22,3 +22,9 @@ By running `python app.py` from the command line you can easily interact with yo
 ```
 docker run -it --rm --name askaws -v $(pwd):/opt/ -p 7860:7860 --env OPENAI_API_KEY=sama ubuntu:chat-your-data
 ```
+
+## Ask a question
+
+```
+python3 docs_ask.py "What is the difference between an io1 and io2 volume?"
+```
