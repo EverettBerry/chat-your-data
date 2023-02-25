@@ -10,6 +10,9 @@ import re
 import sys
 
 
+do_embeddings = True
+
+
 class AWSMarkdownTextSplitter(RecursiveCharacterTextSplitter):
     """Attempts to split the text along Markdown-formatted headings."""
 
@@ -51,8 +54,6 @@ def clean_doc(d):
     return d
 
 
-do_embeddings = False
-
 # Here we load in the data in the format that Notion exports it in.
 ps = list(Path("ebsdocs/").glob("**/*.md"))
 
@@ -90,7 +91,7 @@ for i, d in enumerate(docs):
 # Here we create a vector store from the documents and save it to disk.
 if do_embeddings:
     store = FAISS.from_texts(docs, OpenAIEmbeddings(), metadatas=metadatas)
-    faiss.write_index(store.index, "docs.index")
+    faiss.write_index(store.index, "awsdocs.index")
     store.index = None
     with open("faiss_store.pkl", "wb") as f:
         pickle.dump(store, f)
