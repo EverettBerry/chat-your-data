@@ -1,7 +1,7 @@
 """Ask a question to the notion database."""
 import faiss
-from langchain import OpenAI
-from langchain.chains import VectorDBQAWithSourcesChain
+from langchain import OpenAI, VectorDBQA
+from langchain.prompts import PromptTemplate
 import pickle
 import argparse
 
@@ -23,21 +23,33 @@ Context sections:
 
 Question: {question}
 
-Answer as markdown (inluding related code snippets if available):
+Answer as markdown (including related code snippets if available):
 """
 PROMPT = PromptTemplate(
     template=prompt_template, input_variables=["context", "question"]
 )
-
-
+chain_type_kwargs = {"prompt": PROMPT}
 store.index = index
-chain = VectorDBQAWithSourcesChain.from_llm(
-    llm=OpenAI(temperature=0), vectorstore=store
+qa = VectorDBQA.from_chain_type(
+    llm=OpenAI(temperature=0, model_name="gpt-3.5-turbo"),
+    chain_type="stuff",
+    vectorstore=store,
+    return_source_documents=True,
+    chain_type_kwargs=chain_type_kwargs,
 )
-result = chain({"question": args.question})
-print()
-print()
+
+result = qa({"query": args.question})
+
+
+# chain = VectorDBQAWithSourcesChain.from_llm(
+#     llm=OpenAI(temperature=0), vectorstore=store
+# )
+# result = chain({"question": args.question})
+# print()
+# print()
 
 print(f"Question: {args.question}")
-print(f"Answer: {result['answer']}")
-print(f"Sources: {result['sources']}")
+print(f"Answer: {result['result']}")
+# print(result.items())
+for d in result["source_documents"]:
+    print(d.metadata)
