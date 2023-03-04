@@ -4,6 +4,8 @@ from langchain import OpenAI, VectorDBQA
 from langchain.prompts import PromptTemplate
 import pickle
 import argparse
+from langchain.callbacks.base import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 parser = argparse.ArgumentParser(description="Ask a question to the notion DB.")
 parser.add_argument("question", type=str, help="The question to ask the notion DB")
@@ -31,7 +33,13 @@ PROMPT = PromptTemplate(
 chain_type_kwargs = {"prompt": PROMPT}
 store.index = index
 qa = VectorDBQA.from_chain_type(
-    llm=OpenAI(temperature=0, model_name="gpt-3.5-turbo"),
+    llm=OpenAI(
+        temperature=0,
+        model_name="gpt-3.5-turbo",
+        streaming=True,
+        verbose=True,
+        callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),
+    ),
     chain_type="stuff",
     vectorstore=store,
     return_source_documents=True,
@@ -48,8 +56,8 @@ result = qa({"query": args.question})
 # print()
 # print()
 
-print(f"Question: {args.question}")
-print(f"Answer: {result['result']}")
+# print(f"Question: {args.question}")
+# print(f"Answer: {result['result']}")
 # print(result.items())
-for d in result["source_documents"]:
-    print(d.metadata)
+# for d in result["source_documents"]:
+#     print(d.metadata)
